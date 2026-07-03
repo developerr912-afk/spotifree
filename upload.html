@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Spotifree • Upload Your Song</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0a0a0a; color: white; -webkit-tap-highlight-color: transparent; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(12px); }
+        .glow-sphere {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; height: 400px; background: radial-gradient(circle, rgba(29, 185, 84, 0.2) 0%, transparent 70%);
+            filter: blur(60px); z-index: -1; pointer-events: none;
+        }
+        .file-label { background: #1f1f1f; border-radius: 40px; padding: 10px 16px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; border: 1px solid #2c2c2c; }
+        .file-label:hover { background: #1DB954; color: black; border-color: #1DB954; }
+        .upload-preview { font-size: 11px; color: #aaa; margin-top: 6px; word-break: break-all; }
+        .preview-img { max-width: 100%; max-height: 100px; border-radius: 16px; margin-top: 8px; border: 1px solid #2a2a2a; background: #0a0a0a; }
+        .preview-audio { width: 100%; margin-top: 8px; border-radius: 30px; }
+        .toast-msg { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #1DB954; color: black; font-weight: 800; padding: 12px 24px; border-radius: 60px; z-index: 9999; font-size: 13px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5); backdrop-filter: blur(8px); white-space: nowrap; z-index: 1000; }
+        .toast-error { background: #d32f2f; color: white; }
+        .song-card { transition: all 0.2s ease; }
+        .song-card:hover { border-color: #1DB954; transform: translateY(-2px); }
+        input { transition: all 0.2s; }
+        .input-field { background: #1a1a1a; border: 1px solid #2c2c2c; border-radius: 12px; padding: 14px 18px; width: 100%; outline: none; transition: all 0.2s; color: white; }
+        .input-field:focus { border-color: #1DB954; background: #222; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #1DB954; border-radius: 10px; }
+        .delete-btn { opacity: 0.7; transition: 0.2s; }
+        .delete-btn:hover { opacity: 1; transform: scale(1.05); }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0,0,0,0.3);
+            border-top: 2px solid #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn-loader { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    </style>
+</head>
+<body class="min-h-screen p-5 md:p-8">
+
+    <div class="glow-sphere"></div>
+
+    <div class="max-w-3xl mx-auto">
+        <!-- Header with back button -->
+        <div class="flex justify-between items-center mb-8">
+            <button onclick="window.history.back()" class="p-2.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:bg-white/10 transition">
+                <svg width="24" height="24" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 bg-[#1DB954] rounded-lg flex items-center justify-center text-black font-black text-sm">S</div>
+                <span class="text-xs font-bold tracking-wider text-zinc-500">UPLOAD STUDIO</span>
+            </div>
+        </div>
+
+        <!-- Hero Title -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-black tracking-tighter">Add Your Fav Song</h1>
+            <p class="text-zinc-500 text-sm mt-2">that's not on our platform</p>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="glass-card rounded-3xl p-6 md:p-8 space-y-5">
+            <div>
+                <label class="text-[11px] font-black text-zinc-400 uppercase tracking-wider">Song Title *</label>
+                <input type="text" id="songTitle" class="input-field mt-1.5" placeholder="e.g., Midnight Waves">
+            </div>
+
+            <div>
+                <label class="text-[11px] font-black text-zinc-400 uppercase tracking-wider">Keywords (optional)</label>
+                <input type="text" id="keywords" class="input-field mt-1.5" placeholder="Sad, Romantic, Motivation">
+            </div>
+
+            <!-- Audio file upload -->
+            <div class="border border-white/10 rounded-xl p-4 bg-black/20">
+                <p class="text-xs font-bold text-indigo-300 mb-2">🎵 Audio File (MP3/WAV/OGG) *</p>
+                <label class="file-label w-full justify-center">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Choose Audio
+                    <input type="file" id="audioFile" accept="audio/mpeg,audio/wav,audio/ogg,audio/mp3" style="display:none">
+                </label>
+                <div id="audioPreviewName" class="upload-preview text-green-400/70"></div>
+                <div id="audioPreviewContainer" class="mt-2"></div>
+            </div>
+
+            <!-- Cover image upload -->
+            <div class="border border-white/10 rounded-xl p-4 bg-black/20">
+                <p class="text-xs font-bold text-purple-300 mb-2">🖼️ Cover Art (optional)</p>
+                <label class="file-label w-full justify-center">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Choose Cover
+                    <input type="file" id="coverImage" accept="image/jpeg,image/png,image/webp" style="display:none">
+                </label>
+                <div id="coverPreviewName" class="upload-preview text-purple-400/70"></div>
+                <div id="coverPreviewContainer" class="mt-2 flex justify-center"></div>
+            </div>
+
+            <button id="uploadBtn" class="w-full bg-[#1DB954] text-black font-black py-4 rounded-xl mt-3 active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
+                Add To Spotifree
+            </button>
+        </div>
+
+        <!-- Live Songs List - Only Current User's Songs -->
+        <div class="mt-12 space-y-3" id="songsLibrary">
+            <div class="text-center py-12 text-zinc-500 text-sm animate-pulse">Loading your songs...</div>
+        </div>
+    </div>
+
+    <!-- Firebase & Cloudinary Upload Logic -->
+    <script type="module" src="upload.js">
+       
+    </script>
+
+</body>
+</html>

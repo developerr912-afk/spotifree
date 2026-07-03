@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spotifree | Join the Vibe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family:'Plus Jakarta Sans',sans-serif;
+            background:#121212;
+            color:#fff;
+            -webkit-tap-highlight-color:transparent;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            padding:2.5rem 1.5rem;
+            background:linear-gradient(to top,#000,#121212 60%,rgba(29,185,84,0.10));
+        }
+        .auth-card {
+            background:rgba(255,255,255,0.03);
+            backdrop-filter:blur(10px);
+            -webkit-backdrop-filter:blur(10px);
+            border:1px solid rgba(255,255,255,0.05);
+            border-radius:2rem;
+            padding:2rem;
+            width:100%;
+            max-width:24rem;
+            box-shadow:0 25px 50px -12px rgba(0,0,0,0.8);
+        }
+        .spotify-input {
+            background:#3e3e3e;
+            border:1px solid transparent;
+            transition:all .2s;
+            color:#fff;
+            width:100%;
+            padding:1rem;
+            border-radius:.75rem;
+            font-size:.875rem;
+        }
+        .spotify-input:focus {
+            border-color:#1DB954;
+            background:#4a4a4a;
+            outline:none;
+        }
+        .spotify-input::placeholder { color:#a0a0a0; }
+        .btn-primary {
+            background:#1DB954;
+            color:#000;
+            font-weight:800;
+            transition:transform .15s;
+            width:100%;
+            padding:1rem;
+            border-radius:9999px;
+            font-size:.75rem;
+            text-transform:uppercase;
+            letter-spacing:.05em;
+            border:none;
+            cursor:pointer;
+            box-shadow:0 8px 24px rgba(29,185,84,0.15);
+        }
+        .btn-primary:active { transform:scale(.95); }
+        .hidden { display:none !important; }
+        .logo-wrap {
+            width:4rem; height:4rem;
+            background:#1DB954;
+            border-radius:9999px;
+            margin:0 auto 1rem;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:#000;
+            box-shadow:0 8px 32px rgba(29,185,84,0.20);
+        }
+        .link-like {
+            color:#fff;
+            font-weight:700;
+            cursor:pointer;
+            transition:text-decoration .2s;
+        }
+        .link-like:hover { text-decoration:underline; text-decoration-color:#1DB954; }
+        .back-link {
+            margin-top:2.5rem;
+            color:#71717a;
+            font-size:.65rem;
+            font-weight:700;
+            text-transform:uppercase;
+            letter-spacing:.1em;
+            display:flex;
+            align-items:center;
+            gap:.5rem;
+            text-decoration:none;
+            transition:color .2s;
+        }
+        .back-link:hover { color:#fff; }
+        @media (max-width:480px) {
+            .auth-card { padding:1.5rem; border-radius:1.5rem; }
+            body { padding:1.5rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mb-10 text-center">
+        <div class="logo-wrap">
+            <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" />
+            </svg>
+        </div>
+        <h1 class="text-3xl font-black tracking-tighter">Spotifree</h1>
+        <p id="auth-subtitle" class="text-zinc-400 text-sm mt-2 font-medium">Log in to start listening.</p>
+    </div>
+
+    <div class="auth-card">
+        <div id="login-section">
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Email address</label>
+                    <input type="email" id="login-email" placeholder="email@example.com" class="spotify-input mt-1" />
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Password</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" class="spotify-input mt-1" />
+                </div>
+                <button onclick="handleLogin()" class="btn-primary mt-4">Log In</button>
+            </div>
+            <p class="text-center text-xs text-zinc-500 mt-8 font-medium">
+                Don't have an account?
+                <span onclick="toggleAuth('signup')" class="link-like">Sign up free</span>
+            </p>
+        </div>
+
+        <div id="signup-section" class="hidden">
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">What's your name?</label>
+                    <input type="text" id="signup-name" placeholder="Enter your name" class="spotify-input mt-1" />
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">What's your email?</label>
+                    <input type="email" id="signup-email" placeholder="email@example.com" class="spotify-input mt-1" />
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest ml-1">Create a password</label>
+                    <input type="password" id="signup-pass" placeholder="Minimum 6 characters" class="spotify-input mt-1" />
+                </div>
+                <button onclick="handleSignup()" class="btn-primary mt-4">Create Account</button>
+            </div>
+            <p class="text-center text-xs text-zinc-500 mt-8 font-medium">
+                Already have an account?
+                <span onclick="toggleAuth('login')" class="link-like">Log in here</span>
+            </p>
+        </div>
+    </div>
+
+    <a href="index.html" class="back-link">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Player
+    </a>
+
+    
+    <script type="module" src="addaccount.js"></script>
+</body>
+</html>

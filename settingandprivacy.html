@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | Spotifree</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #121212; color: white; -webkit-tap-highlight-color: transparent; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .section-title { color: #1DB954; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-top: 32px; margin-bottom: 8px; }
+        .back-btn { position: fixed; top: 20px; left: 20px; z-index: 100; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        
+        /* Custom Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #1DB954; }
+        input:checked + .slider:before { transform: translateX(20px); }
+    </style>
+</head>
+<body class="min-h-screen pb-20 px-6">
+
+    <div onclick="window.history.back()" class="back-btn p-2 rounded-full cursor-pointer border border-white/10">
+        <svg width="24" height="24" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+    </div>
+
+    <header class="pt-24 mb-4">
+        <h1 class="text-3xl font-extrabold tracking-tight">Settings</h1>
+    </header>
+
+    <main class="max-w-xl mx-auto">
+        
+        <div class="section-title">Account</div>
+        <div class="setting-row">
+            <div>
+                <h4 class="font-bold text-sm">Free Plan</h4>
+                <p class="text-xs text-zinc-500">You're currently on Spotifree Free</p>
+            </div>
+            <a href="soon.html" class="text-[10px] font-black uppercase tracking-widest bg-white text-black px-4 py-1.5 rounded-full">Upgrade</a>
+        </div>
+        <div class="setting-row">
+            <div>
+                <h4 class="font-bold text-sm">Email</h4>
+                <p id="user-email" class="text-xs text-zinc-500">Loading...</p>
+            </div>
+        </div>
+
+        <div class="section-title">Privacy & Social</div>
+        <div class="setting-row">
+            <div>
+                <h4 class="font-bold text-sm">Private Profile</h4>
+                <p class="text-xs text-zinc-500">Only people you approve can see your profile</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="privacy-toggle" onchange="window.updatePrivacy(this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="setting-row">
+            <div>
+                <h4 class="font-bold text-sm">Listening Activity</h4>
+                <p class="text-xs text-zinc-500">Share what I listen to with my followers</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="section-title">Content Preferences</div>
+        <div class="setting-row">
+            <div>
+                <h4 class="font-bold text-sm">Explicit Content</h4>
+                <p class="text-xs text-zinc-500">Allow playback of explicit-rated content</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="setting-row">
+            <div>
+                <h4 class="font-bold text-sm">Show Unplayable Songs</h4>
+                <p class="text-xs text-zinc-500">Display songs that aren't available</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="section-title">About</div>
+        <div class="setting-row cursor-pointer">
+            <a class="font-bold text-sm" href="terms.html">Terms and Conditions</a>
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="setting-row cursor-pointer">
+            <a class="font-bold text-sm" href="privacy.html">Privacy Policy</a>
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+        </div>
+        <div class="setting-row cursor-pointer">
+            <h4 class="font-bold text-sm text-zinc-500 italic">Version 2.0.4-cloud</h4>
+        </div>
+
+        <div class="mt-12 mb-20">
+            <button onclick="window.handleLogout()" class="w-full py-4 rounded-full bg-[#282828] text-white font-bold text-sm uppercase tracking-widest hover:bg-zinc-800 transition">Log out</button>
+        </div>
+
+    </main>
+
+    <script type="module" src="setting.js"></script>
+
+
+</body>
+</html>

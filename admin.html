@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spotifree | Admin Panel (Cloudinary + Playlists)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0c0c0c; color: white; margin: 0; padding: 0; }
+        .sidebar-btn { transition: all 0.2s; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 12px; width: 100%; color: #a1a1aa; }
+        .sidebar-btn.active { background-color: #1DB954; color: black; font-weight: 800; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; }
+        .input-field { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 14px; width: 100%; outline: none; transition: border 0.2s; color: white; }
+        .input-field:focus { border-color: #1DB954; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .file-label { background: #2a2a2a; border-radius: 40px; padding: 10px 16px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; transition: 0.2s; border: 1px solid #333; }
+        .file-label:hover { background: #1DB954; color: black; border-color: #1DB954; }
+        .upload-preview { font-size: 11px; color: #aaa; margin-top: 6px; word-break: break-all; }
+        .preview-img { max-width: 100%; max-height: 100px; border-radius: 12px; margin-top: 8px; border: 1px solid #333; background: #0a0a0a; }
+        .preview-audio { width: 100%; margin-top: 8px; border-radius: 20px; }
+        @media (max-width: 768px) {
+            .desktop-sidebar { display: none !important; }
+            .mobile-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: #121212; border-top: 1px solid rgba(255,255,255,0.08); display: flex !important; justify-content: space-around; align-items: center; z-index: 1000; padding-bottom: 10px; }
+            .mobile-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: #71717a; }
+            .mobile-nav-item.active { color: #1DB954; }
+            main { padding: 20px 16px 100px 16px !important; width: 100% !important; overflow-x: hidden; }
+        }
+        .modal-bg { backdrop-filter: blur(10px); background: rgba(0,0,0,0.85); }
+        .artist-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; background: #1f1f1f; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #1DB954; margin: 0 auto; }
+        .upload-artist-img-btn { background: rgba(29,185,84,0.15); border-radius: 999px; padding: 8px 16px; font-size: 11px; font-weight: 800; transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+        .upload-artist-img-btn:hover { background: #1DB954; color: black; }
+        .url-input-small { background: #0a0a0a; border: 1px solid #333; border-radius: 20px; padding: 6px 12px; font-size: 11px; width: 100%; color: white; outline: none; }
+        .url-input-small:focus { border-color: #1DB954; }
+        .btn-loading { opacity: 0.7; pointer-events: none; }
+        .manual-url-field { margin-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 12px; }
+        .user-table { width: 100%; border-collapse: collapse; }
+        .user-table th { text-align: left; padding: 16px 12px; background: rgba(255,255,255,0.02); font-size: 12px; font-weight: 800; color: #a1a1aa; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .user-table td { padding: 14px 12px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: middle; }
+        .user-table tr:hover { background: rgba(29,185,84,0.05); }
+        .badge-date { font-family: monospace; font-size: 11px; background: #1a1a1a; padding: 4px 8px; border-radius: 20px; display: inline-block; }
+        .lang-checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; background: #0a0a0a; padding: 12px; border-radius: 16px; }
+        .lang-checkbox-group label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+        .playlist-song-list { max-height: 300px; overflow-y: auto; margin-top: 12px; background: #0f0f0f; border-radius: 16px; padding: 8px; }
+        .playlist-song-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; background: #1a1a1a; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .playlist-song-item.selected { background: #1DB95420; border: 1px solid #1DB954; }
+        .playlist-song-item:hover { background: #2a2a2a; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <aside class="desktop-sidebar w-64 bg-black p-6 flex flex-col gap-8 border-r border-white/5 h-screen sticky top-0 shrink-0">
+        <div class="flex items-center gap-2 px-2">
+            <div class="w-8 h-8 bg-[#1DB954] rounded-lg flex items-center justify-center text-black font-black">S</div>
+            <h1 class="text-xl font-black tracking-tighter">Spotifree</h1>
+        </div>
+        <nav class="flex flex-col gap-2">
+            <div onclick="showTab('songs')" id="d-btn-songs" class="sidebar-btn active"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg><span>Manage Songs</span></div>
+            <div onclick="showTab('artists')" id="d-btn-artists" class="sidebar-btn"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Artist Profiles</span></div>
+            <div onclick="showTab('playlists')" id="d-btn-playlists" class="sidebar-btn"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 8h-2v2h2v-2zm0-4h-2v2h2V6zm-4 4h-2v2h2v-2zm0-4h-2v2h2V6z"/></svg><span>Playlists</span></div>
+            <div onclick="showTab('updates')" id="d-btn-updates" class="sidebar-btn"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg><span>App Updates</span></div>
+            <div onclick="showTab('users')" id="d-btn-users" class="sidebar-btn"><svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z"/></svg><span>User Logs</span></div>
+        </nav>
+        <div class="mt-auto"><a href="index.html" class="flex items-center gap-3 p-3 text-xs font-bold text-zinc-500 uppercase tracking-widest hover:text-white transition"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>Exit Admin</a></div>
+    </aside>
+
+    <nav class="mobile-nav hidden">
+        <div onclick="showTab('songs')" id="m-btn-songs" class="mobile-nav-item active"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg><span>Songs</span></div>
+        <div onclick="showTab('artists')" id="m-btn-artists" class="mobile-nav-item"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Artists</span></div>
+        <div onclick="showTab('playlists')" id="m-btn-playlists" class="mobile-nav-item"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 8h-2v2h2v-2zm0-4h-2v2h2V6zm-4 4h-2v2h2v-2zm0-4h-2v2h2V6z"/></svg><span>Playlists</span></div>
+        <div onclick="showTab('updates')" id="m-btn-updates" class="mobile-nav-item"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/></svg><span>Updates</span></div>
+        <div onclick="showTab('users')" id="m-btn-users" class="mobile-nav-item"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3z"/></svg><span>Users</span></div>
+    </nav>
+
+    <main class="flex-1 overflow-y-auto p-8 no-scrollbar bg-black/20">
+        <!-- Songs Tab -->
+        <div id="tab-songs" class="tab-content">
+            <h2 class="text-3xl font-black mb-8 tracking-tight">Music Library (Cloudinary)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 glass-card p-6 h-fit md:sticky md:top-6">
+                    <h3 class="text-lg font-bold mb-6 flex items-center gap-2 text-[#1DB954]"><span class="w-1.5 h-6 bg-[#1DB954] rounded-full"></span>Add New Track</h3>
+                    <div class="space-y-5">
+                        <input type="text" id="song-title" placeholder="Song Title *" class="input-field">
+                        <input type="text" id="song-artist" placeholder="Artist Name *" class="input-field">
+                        <input type="text" id="song-keywords" placeholder="Keywords (e.g., Sad, Happy, LoFi)" class="input-field">
+                        <div class="border border-white/10 rounded-xl p-3 bg-black/30">
+                            <p class="text-xs font-bold text-indigo-300 mb-2">🎵 Audio File (MP3/WAV)</p>
+                            <label class="file-label w-full justify-center text-sm"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Choose Audio<input type="file" id="audioFileInput" accept="audio/mpeg,audio/wav,audio/ogg" style="display:none"></label>
+                            <div id="audioFileNamePreview" class="upload-preview text-green-400/70"></div>
+                            <div id="audioPreviewContainer" class="mt-2"></div>
+                            <div class="manual-url-field"><input type="text" id="song-link" class="input-field text-sm" placeholder="🔗 Or paste direct audio URL"></div>
+                        </div>
+                        <div class="border border-white/10 rounded-xl p-3 bg-black/30">
+                            <p class="text-xs font-bold text-purple-300 mb-2">🖼️ Cover Image (JPG/PNG)</p>
+                            <label class="file-label w-full justify-center text-sm"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>Choose Cover<input type="file" id="imageFileInput" accept="image/jpeg,image/png,image/webp" style="display:none"></label>
+                            <div id="imageFileNamePreview" class="upload-preview text-purple-400/70"></div>
+                            <div id="imagePreviewContainer" class="mt-2 flex justify-center"></div>
+                            <div class="manual-url-field"><input type="text" id="song-image" class="input-field text-sm" placeholder="🔗 Or paste image URL"></div>
+                        </div>
+                        <button id="add-song-btn" class="w-full bg-[#1DB954] text-black font-black py-4 rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2">⬆️ Upload to Cloudinary</button>
+                        <p class="text-[10px] text-center text-zinc-500">✅ Files uploaded to Cloudinary CDN (Fast & Reliable)</p>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 space-y-3" id="admin-songs-list"><div class="py-20 text-center opacity-30 font-bold uppercase tracking-widest text-xs">Loading songs...</div></div>
+            </div>
+        </div>
+
+        <!-- Artists Tab -->
+        <div id="tab-artists" class="tab-content hidden"><h2 class="text-3xl font-black mb-4 tracking-tight">Artist Profiles</h2><div id="artists-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div></div>
+
+        <!-- Playlists Tab -->
+        <div id="tab-playlists" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
+                <h2 class="text-3xl font-black">Smart Playlists (Target by Keywords + Languages)</h2>
+                <button onclick="openPlaylistModal()" class="bg-[#1DB954] text-black px-6 py-3 rounded-full font-black text-sm shadow-lg">+ Create Playlist</button>
+            </div>
+            <div id="playlists-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- Updates Tab -->
+        <div id="tab-updates" class="tab-content hidden"><h2 class="text-3xl font-black mb-8">Broadcast Center</h2><div class="glass-card p-6 md:p-8 max-w-2xl"><textarea id="update-msg" placeholder="Write update..." class="input-field h-32 mb-6"></textarea><button id="post-update-btn" class="bg-[#1DB954] text-black font-black px-10 py-4 rounded-full">Broadcast Now</button><div id="updates-history" class="mt-12 space-y-3"></div></div></div>
+
+        <!-- Users Logs Tab -->
+        <div id="tab-users" class="tab-content hidden">
+            <h2 class="text-3xl font-black mb-8">📋 Registered Users Logs</h2>
+            <div class="glass-card overflow-x-auto p-2">
+                <table class="user-table">
+                    <thead><tr><th>UID (short)</th><th>Full Name</th><th>Email Address</th><th>Joined Date & Time</th><th>Actions</th></tr></thead>
+                    <tbody id="users-table-body"><tr><td colspan="5" class="text-center py-10 text-zinc-500">Loading user data...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Song Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-[2000] modal-bg hidden flex items-center justify-center p-6">
+        <div class="bg-[#1c1c1c] w-full max-w-md p-8 rounded-[2rem] border border-white/10">
+            <h2 class="text-2xl font-black mb-6 text-[#1DB954]">Edit Track</h2>
+            <div class="space-y-4"><input type="hidden" id="edit-song-id"><input type="text" id="edit-song-title" class="input-field" placeholder="Title"><input type="text" id="edit-song-artist" class="input-field" placeholder="Artist"><input type="text" id="edit-song-keywords" class="input-field" placeholder="Keywords"><input type="text" id="edit-song-image" class="input-field" placeholder="Image URL"><input type="text" id="edit-song-link" class="input-field" placeholder="Audio URL"></div>
+            <div class="flex gap-3 mt-10"><button onclick="window.closeEditModal()" class="flex-1 py-4 font-bold text-zinc-500">Cancel</button><button onclick="window.saveEditedSong()" class="flex-1 bg-white text-black font-black py-4 rounded-full">Save Changes</button></div>
+        </div>
+    </div>
+
+    <!-- Playlist Create/Edit Modal -->
+    <div id="playlist-modal" class="fixed inset-0 z-[2000] modal-bg hidden flex items-center justify-center p-6 overflow-y-auto">
+        <div class="bg-[#1c1c1c] w-full max-w-2xl p-6 rounded-3xl border border-white/10 my-8">
+            <h2 id="playlist-modal-title" class="text-2xl font-black mb-4">Create Playlist</h2>
+            <input type="hidden" id="edit-playlist-id">
+            <div class="space-y-4">
+                <input type="text" id="playlist-name" class="input-field" placeholder="Playlist Name *">
+                <input type="text" id="playlist-keywords" class="input-field" placeholder="Target moods/keywords (comma: sad, romantic, party)">
+                <div><label class="text-sm font-bold">Target Languages:</label><div id="playlist-languages-group" class="lang-checkbox-group"></div></div>
+                <div><label class="text-sm font-bold">Select Songs (click to select/deselect)</label><div id="playlist-songs-selector" class="playlist-song-list"></div></div>
+            </div>
+            <div class="flex gap-3 mt-6"><button onclick="closePlaylistModal()" class="flex-1 py-3 font-bold text-zinc-500">Cancel</button><button id="save-playlist-btn" class="flex-1 bg-[#1DB954] text-black font-black py-3 rounded-full">Save Playlist</button></div>
+        </div>
+    </div>
+
+    <!-- External JavaScript (all logic + protection) -->
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | Spotifree</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #121212; color: white; -webkit-tap-highlight-color: transparent; }
+        .content-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; }
+        .back-btn { position: fixed; top: 20px; left: 20px; z-index: 100; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); }
+        h3 { color: #1DB954; font-weight: 800; text-transform: uppercase; font-size: 13px; letter-spacing: 1.5px; margin-top: 28px; margin-bottom: 10px; }
+        p, li { color: #a1a1aa; font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+        ul { list-style-type: disc; margin-left: 20px; margin-bottom: 16px; }
+    </style>
+</head>
+<body class="min-h-screen pb-20 px-6">
+
+    <div onclick="window.history.back()" class="back-btn p-2 rounded-full cursor-pointer border border-white/10">
+        <svg width="24" height="24" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+    </div>
+
+    <header class="pt-24 mb-10 text-center">
+        <h1 class="text-4xl font-black tracking-tighter">Privacy Policy</h1>
+        <p class="text-zinc-500 text-sm mt-2">Effective Date: April 12, 2026</p>
+    </header>
+
+    <main class="max-w-2xl mx-auto content-card p-8 shadow-2xl">
+        <section>
+            <h3>1. Data We Collect</h3>
+            <p>At Spotifree, we collect minimal information to provide a better music experience:</p>
+            <ul>
+                <li><strong>Account Info:</strong> Your email and name when you sign up.</li>
+                <li><strong>Usage Data:</strong> Your listening history (Recent) and Liked songs.</li>
+                <li><strong>Payment Info:</strong> Subscription details (processed securely via Firebase).</li>
+            </ul>
+        </section>
+
+            
+
+        <section>
+            <h3>2. How We Use Your Data</h3>
+            <p>We use your data to personalize your experience, including:</p>
+            <ul>
+                <li>Creating and managing your custom playlists.</li>
+                <li>Providing "Recently Played" history.</li>
+                <li>Processing your Premium subscription status.</li>
+                <li>Sending app updates via the "What's New" section.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h3>3. Data Security</h3>
+            <p>We use **Firebase (Google Cloud)** to securely store your information. Your passwords are encrypted and never stored in plain text. While we strive for 100% security, no method of transmission over the internet is completely foolproof.</p>
+        </section>
+
+        <section>
+            <h3>4. Your Choices</h3>
+            <p>You have full control over your privacy:</p>
+            <ul>
+                <li>You can set your profile to <strong>Private</strong> in the Settings.</li>
+                <li>You can clear your <strong>Recent History</strong> at any time.</li>
+                <li>You can delete your account by contacting support.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h3>5. Cookies & Tracking</h3>
+            <p>We use local storage to keep you logged in and remember your volume/player preferences. We do not use third-party tracking cookies for advertising.</p>
+        </section>
+
+        <section>
+            <h3>6. Updates to This Policy</h3>
+            <p>We may update this policy from time to time. We will notify you of any significant changes through the "What's New" section in the app.</p>
+        </section>
+
+        <footer class="mt-16 pt-8 border-t border-white/5 text-center">
+            <p class="text-[10px] font-extrabold uppercase tracking-[0.2em] text-zinc-600">Securely Powered by Spotifree Cloud Infrastructure</p>
+        </footer>
+    </main>
+
+ <script type="module" src="privacy.js"></script>
+
+
+</body>
+</html>

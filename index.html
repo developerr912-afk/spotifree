@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Spotifree | Smart Music App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #121212; color: white; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        .active-filter { background-color: #1DB954 !important; color: black !important; }
+        .filter-btn { background-color: #282828; color: white; border: none; padding: 8px 18px; border-radius: 999px; font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.2s; }
+        .search-trigger { background: #242424; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 14px 20px; width: 100%; display: flex; align-items: center; gap: 10px; color: #a7a7a7; font-size: 14px; cursor: pointer; margin-top: 20px; }
+        input[type="range"] { -webkit-appearance: none; background: #4d4d4d; height: 4px; border-radius: 2px; cursor: pointer; width: 100%; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; background: #1DB954; border-radius: 50%; }
+        #full-player, #playlist-detail-view, #search-overlay { position: fixed; inset: 0; background-color: #121212; transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); z-index: 200; transform: translateY(100%); }
+        .show-view { transform: translateY(0) !important; }
+        #side-menu { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; background-color: #121212; z-index: 500; transition: transform 0.3s ease; transform: translateX(-100%); border-right: 1px solid rgba(255,255,255,0.1); }
+        .show-menu { transform: translateX(0) !important; }
+        .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 450; display: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .playlist-card { background: linear-gradient(135deg, #2a2a2a, #151515); border-radius: 20px; transition: all 0.2s ease; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; }
+        .playlist-card:hover { transform: translateY(-4px); background: #252525; border-color: rgba(29,185,84,0.3); }
+        .delete-playlist-btn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); border-radius: 999px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; opacity: 0; pointer-events: none; color: #ff6b6b; z-index: 10; }
+        .playlist-card:hover .delete-playlist-btn { opacity: 1; pointer-events: auto; }
+        .delete-playlist-btn:hover { background: #ff4444; color: white; transform: scale(1.05); }
+        .mood-card { background: linear-gradient(135deg, #1DB95440 0%, #121212 100%); border: 1px solid #1DB95430; border-radius: 16px; transition: all 0.2s; cursor: pointer; }
+        .mood-card:hover { transform: scale(1.02); background: #1DB95420; }
+        #player-bar { position: fixed; bottom: 16px; left: 8px; right: 8px; z-index: 250; background-color: #282828; border-radius: 12px; padding: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 0.3s ease; }
+        .active-dot { width: 4px; height: 4px; background-color: #1DB954; border-radius: 50%; margin: 0 auto; margin-top: 2px; }
+        .nav-link.active-link { color: #1DB954 !important; font-weight: 800; }
+        #full-like-btn.is-liked { color: #1DB954 !important; }
+        #full-like-btn.is-liked svg { fill: #1DB954; stroke: #1DB954; }
+        .search-header { background: #121212; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 16px; }
+        .search-input-full { background: #282828; width: 100%; padding: 12px 16px; border-radius: 8px; outline: none; border: 1px solid transparent; color: white; font-size: 16px; }
+        .search-input-full:focus { border-color: #1DB954; }
+        .playlist-play-btn { background: rgba(29,185,84,0.2); backdrop-filter: blur(2px); transition: all 0.2s ease; }
+        .playlist-play-btn:hover { background: #1DB954; transform: scale(1.05); color: black; }
+        .detail-play-btn { background: #1DB954; color: black; border-radius: 999px; padding: 12px 24px; font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 0 12px rgba(29,185,84,0.5); transition: all 0.2s ease; }
+        .artist-playlist-card { background: linear-gradient(135deg, #1DB95430 0%, #121212 100%); border: 1px solid #1DB95440; border-radius: 20px; transition: all 0.2s ease; cursor: pointer; padding: 16px; margin-bottom: 20px; }
+        .artist-playlist-card:hover { transform: scale(1.01); background: linear-gradient(135deg, #1DB95440 0%, #1f1f1f 100%); }
+        .search-chip { background: #282828; border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 600; transition: all 0.2s; cursor: pointer; display: inline-block; }
+        .search-chip:hover { background: #1DB954; color: black; }
+        .download-btn { background: rgba(29,185,84,0.2); border-radius: 999px; padding: 8px; transition: all 0.2s; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+        .download-btn:hover { background: #1DB954; color: black; transform: scale(1.05); }
+        .search-mood-banner { background: linear-gradient(135deg, #1DB95430, #121212); border-radius: 20px; padding: 16px; margin-bottom: 20px; cursor: pointer; border: 1px solid #1DB95440; transition: 0.2s; display: flex; align-items: center; justify-content: space-between; }
+        .search-mood-banner:hover { background: #1DB95440; transform: scale(1.01); }
+        #search-results { min-height: 200px; padding: 16px; overflow-y: auto; max-height: calc(100vh - 140px); }
+        .song-result-item { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; cursor: pointer; transition: 0.25s; background: #181818; border: 1px solid transparent; margin-bottom: 8px; }
+        .song-result-item:hover { background: #242424; border-color: rgba(29,185,84,0.3); transform: scale(1.01); }
+        .song-result-img { width: 58px; height: 58px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
+        .song-result-info { flex: 1; min-width: 0; }
+        .song-result-title { font-size: 15px; font-weight: 800; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .song-result-artist { font-size: 12px; color: #a7a7a7; margin-top: 2px; }
+        .loading-text { text-align: center; color: #a7a7a7; margin-top: 40px; font-size: 14px; }
+        .collab-input { background: #3e3e3e; border-radius: 20px; padding: 6px 12px; font-size: 12px; outline: none; border: 1px solid transparent; color: white; }
+        .collab-input:focus { border-color: #1DB954; }
+        .share-icon { cursor: pointer; transition: 0.2s; }
+        .share-icon:hover { color: #1DB954; transform: scale(1.05); }
+        .onboarding-option { background: #1f1f1f; border-radius: 40px; padding: 8px 16px; cursor: pointer; transition: 0.2s; border: 1px solid #2c2c2c; }
+        .onboarding-option.selected { background: #1DB954; color: black; border-color: #1DB954; }
+        .onboarding-option:hover { background: #2c2c2c; }
+        .delete-playlist-detail { background: rgba(255,70,70,0.2); border-radius: 999px; padding: 10px 18px; font-size: 14px; font-weight: 800; color: #ff6b6b; transition: 0.2s; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .delete-playlist-detail:hover { background: #ff4444; color: white; }
+        .playlist-detail-header { background: linear-gradient(135deg, #1DB95430, #121212); border-radius: 32px; margin: 20px; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+        .playlist-cover-icon { width: 80px; height: 80px; background: rgba(29,185,84,0.2); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 48px; }
+        .lang-chip { background: #2a2a2a; border-radius: 40px; padding: 8px 20px; font-size: 14px; font-weight: 600; transition: 0.2s; cursor: pointer; border: 1px solid #3a3a3a; }
+        .lang-chip.selected { background: #1DB954; color: black; border-color: #1DB954; }
+        .mix-refresh-indicator { font-size: 10px; color: #1DB954; margin-left: 6px; }
+        .loop-active { color: #1DB954 !important; }
+        #loop-one-label { display: none; font-size: 9px; font-weight: 800; background: #1DB954; color: #000; border-radius: 50%; width: 14px; height: 14px; line-height: 14px; text-align: center; position: absolute; top: -6px; right: -8px; box-shadow: 0 0 2px rgba(0,0,0,0.3); }
+        .loop-one-active #loop-one-label { display: flex !important; align-items: center; justify-content: center; }
+        #loop-dot { transition: opacity 0.2s; width: 4px; height: 4px; background-color: #1DB954; border-radius: 50%; margin: 0 auto; margin-top: 2px; }
+        .loop-playlist-active #loop-dot { opacity: 1 !important; }
+        .shuffle-active { color: #1DB954 !important; }
+        .playlist-picker-item { padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s; font-size: 14px; font-weight: 600; }
+        .playlist-picker-item:hover { background: #1DB95420; color: #1DB954; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <audio id="audio-engine" preload="auto"></audio>
+
+    <header class="fixed top-0 w-full z-50 bg-[#121212] p-4 flex justify-between items-center border-b border-white/5">
+        <div class="flex items-center gap-3">
+            <div onclick="window.toggleMenu(true)" id="user-initial-circle" class="w-9 h-9 bg-[#D85C27] rounded-full flex items-center justify-center font-bold text-sm text-white cursor-pointer transition-all bg-cover bg-center">?</div>
+            <h1 class="font-bold text-lg tracking-tight">Spotifree</h1>
+        </div>
+        <button onclick="window.showPlaylistModal()" class="bg-[#282828] p-2 rounded-full text-[10px] font-bold px-3 active:scale-95 transition-all">+ Playlist</button>
+    </header>
+
+    <div id="menu-overlay" class="menu-overlay" onclick="window.toggleMenu(false)"></div>
+    <aside id="side-menu" class="flex flex-col">
+        <div class="p-6 pt-12 flex flex-col gap-1 border-b border-white/5">
+            <div id="side-user-avatar" class="w-14 h-14 bg-[#D85C27] rounded-full flex items-center justify-center text-xl font-bold mb-2 bg-cover bg-center"></div>
+            <h2 id="side-user-name" class="text-xl font-extrabold truncate italic">Loading...</h2>
+            <input type="file" id="dp-upload-input" accept="image/*" style="display: none;">
+            <a class="text-xs text-zinc-500 font-bold uppercase tracking-wider mt-2" href="profile.html">View Profile</a>
+        </div>
+        <nav id="sidebar-nav" class="flex-grow overflow-y-auto p-4 space-y-1">
+            <a href="addaccount.html" class="nav-link flex items-center gap-4 p-3 rounded-lg hover:bg-white/5"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg><span class="text-sm font-semibold">Add account</span></a>
+            <a href="update.html" class="nav-link flex items-center gap-4 p-3 rounded-lg hover:bg-white/5"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg><span class="text-sm font-semibold">What's new</span></a>
+            <a href="upload.html" class="nav-link flex items-center gap-4 p-3 rounded-lg hover:bg-white/5"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg><span class="text-sm font-semibold">Upload Song</span></a>
+            <a href="settingandprivacy.html" class="nav-link flex items-center gap-4 p-3 rounded-lg hover:bg-white/5"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg><span class="text-sm font-bold">Settings</span></a>
+        </nav>
+    </aside>
+
+    <!-- SEARCH OVERLAY -->
+    <div id="search-overlay">                               
+        <div class="search-header">
+            <button onclick="window.closeSearch()" class="p-2"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+            <input type="text" id="full-search-input" placeholder="Search songs, artists, moods, keywords..." class="search-input-full" autofocus>
+        </div>
+        <div id="search-suggestions" class="px-4 pt-3 pb-2 border-b border-white/10 flex flex-wrap gap-2"></div>
+        <div id="search-results"></div>
+    </div>
+
+    <main id="page-main" class="mt-16 px-4">
+        <br>
+        <div onclick="window.openSearch()" class="search-trigger"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><span>Search songs, artists, moods, keywords...</span></div>
+        <br>
+        <div class="flex gap-2 mb-6 overflow-x-auto no-scrollbar py-2 sticky top-16 bg-[#121212] z-40"><button onclick="window.filterMain('all')" id="f-all" class="filter-btn active-filter">All (Smart)</button><button onclick="window.filterMain('liked')" id="f-liked" class="filter-btn">Liked</button><button onclick="window.filterMain('playlists')" id="f-playlists" class="filter-btn">Playlists</button></div>
+        <div id="content-area"><h2 id="section-title" class="text-xl font-extrabold mb-4 text-zinc-400">Library · Personalized for You</h2><div id="main-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 pb-20"></div></div>
+    </main>
+
+    <!-- Playlist Detail View -->
+    <div id="playlist-detail-view" class="overflow-y-auto">
+        <div class="relative min-h-screen">
+            <div class="sticky top-0 z-10 bg-gradient-to-b from-[#1DB954]/20 to-[#121212] pt-8 pb-4 px-5">
+                <button onclick="window.closePlaylistView()" class="absolute top-6 left-5 bg-black/40 p-2 rounded-full z-10"><svg width="22" height="22" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+                <div class="flex flex-col items-center text-center mt-8">
+                    <div class="w-32 h-32 rounded-3xl bg-gradient-to-br from-[#1DB954] to-[#0f5c2e] flex items-center justify-center shadow-2xl mb-4">
+                        <span id="playlist-cover-emoji" class="text-6xl">🎵</span>
+                    </div>
+                    <h1 id="view-playlist-name" class="text-3xl font-black">Playlist</h1>
+                    <p id="view-playlist-meta" class="text-zinc-400 text-sm mt-1">0 tracks</p>
+                </div>
+                <div class="flex justify-center gap-4 mt-6">
+                    <button onclick="window.sharePlaylist()" id="share-playlist-btn" class="bg-white/10 px-5 py-2 rounded-full font-bold text-sm flex items-center gap-2"><svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg> Share</button>
+                    <button onclick="window.playCurrentPlaylist()" id="detail-play-btn" class="bg-[#1DB954] text-black px-6 py-2 rounded-full font-extrabold flex items-center gap-2 shadow-lg"><svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play All</button>
+                    <button id="delete-playlist-detail-btn" onclick="window.deleteCurrentPlaylistFromDetail()" class="bg-red-500/20 text-red-400 px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 hidden"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Delete</button>
+                </div>
+                <div id="playlist-collab-bar" class="mt-3 flex justify-center gap-2 flex-wrap"></div>
+            </div>
+            <div id="playlist-songs-list" class="px-4 pb-32 space-y-2 mt-2"></div>
+        </div>
+    </div>
+
+    <footer id="player-bar" class="flex items-center justify-between transform translate-y-[200%] shadow-2xl"><div onclick="window.openFullPlayer()" class="flex items-center gap-3 truncate flex-grow h-full py-1 cursor-pointer"><img id="p-img" src="" class="w-11 h-11 rounded-md object-cover shadow-md"><div class="truncate"><h4 id="p-title" class="text-xs font-bold truncate w-32">...</h4><p id="p-artist" class="text-[10px] text-zinc-400 truncate italic">Artist</p></div></div><div class="flex items-center gap-4 px-2"><button onclick="window.togglePlay(event)" id="mini-play-btn" class="text-white active:scale-75 transition"><svg id="play-icon" width="32" height="32" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button></div><div class="absolute bottom-0 left-2 right-2 h-[2px] bg-white/10 overflow-hidden rounded-full"><div id="mini-progress" class="h-full bg-white transition-all" style="width: 0%"></div></div></footer>
+
+    <div id="full-player" class="flex flex-col px-8 pt-8 pb-12 overflow-hidden"><button onclick="window.closeFullPlayer()" class="w-fit mb-4 opacity-70"><svg width="32" height="32" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></button><div class="flex-grow flex flex-col items-center justify-start mt-4"><img id="full-p-img" src="" class="w-full aspect-square object-cover rounded-2xl shadow-2xl mb-8 max-w-[320px]"><div class="w-full flex justify-between items-center mb-6 max-w-[320px]"><div class="truncate pr-4"><h2 id="full-p-title" class="text-2xl font-black truncate">Title</h2><p id="full-p-artist" class="text-zinc-400 font-semibold truncate">Artist</p></div><div class="flex items-center gap-3"><button onclick="window.shareCurrentSong()" class="share-icon"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.05 4.11c-.05.23-.09.46-.09.7 0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3z"/></svg></button><button onclick="window.downloadCurrentSong()" class="download-btn"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg></button><button onclick="window.showAddToPlaylistPicker(event)" class="text-zinc-400"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg></button><button onclick="window.toggleLike(event)" id="full-like-btn" class="transition active:scale-125 text-zinc-400"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button></div></div><div class="w-full max-w-[320px] space-y-2 mb-8"><input type="range" id="full-seek-bar" value="0" class="w-full" oninput="window.seek(event)"><div class="flex justify-between text-[10px] font-bold text-zinc-500 font-mono"><span id="c-time">0:00</span><span id="d-time">0:00</span></div></div><div class="w-full max-w-[320px] flex justify-around items-center"><button onclick="window.toggleShuffle()" id="shuffle-btn" class="text-zinc-500 transition"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.45 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button><button onclick="window.prevSong()" class="text-white active:scale-75 transition"><svg width="34" height="34" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button><button onclick="window.togglePlay(event)" class="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center shadow-xl active:scale-90 transition"><svg id="full-play-icon" width="40" height="40" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button><button onclick="window.nextSong()" class="text-white active:scale-75 transition"><svg width="34" height="34" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button><div class="flex flex-col items-center"><button onclick="window.toggleLoop()" id="loop-btn" class="text-zinc-500 relative transition-colors"><svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg><span id="loop-one-label" class="hidden">1</span></button><div id="loop-dot" class="active-dot opacity-0 mt-1"></div></div></div></div></div>
+
+    <div id="playlist-picker" class="fixed inset-0 z-[600] bg-black/95 hidden flex items-center justify-center p-6"><div class="bg-[#282828] w-full max-w-sm rounded-3xl overflow-hidden flex flex-col border border-white/5"><div class="p-5 border-b border-white/5 font-bold text-center">Add to Playlist</div><div id="picker-list" class="overflow-y-auto max-h-[50vh] p-3"></div><button onclick="window.hidePlaylistPicker()" class="p-4 bg-zinc-800 font-bold text-sm">Cancel</button></div></div>
+    <div id="playlist-modal" class="fixed inset-0 z-[600] bg-black/98 hidden flex items-center justify-center p-6"><div class="bg-[#282828] w-full max-w-sm p-8 rounded-3xl border border-white/10 shadow-2xl"><h2 class="text-xl font-bold mb-6">New Playlist</h2><input type="text" id="new-playlist-name" placeholder="Mix Name" class="w-full bg-[#3e3e3e] p-4 rounded-xl outline-none mb-8 text-white"><div class="flex items-center gap-3 mb-6"><input type="checkbox" id="collab-checkbox" class="w-4 h-4 accent-[#1DB954]"><label for="collab-checkbox" class="text-sm">Collaborative playlist (others can add songs)</label></div><div class="flex gap-3"><button onclick="window.hidePlaylistModal()" class="flex-1 py-3 font-bold text-zinc-500">Back</button><button onclick="window.createPlaylist()" class="flex-1 bg-[#1DB954] text-black font-bold py-3 rounded-full shadow-lg shadow-[#1DB954]/20">Create</button></div></div></div>
+    <div id="invite-modal" class="fixed inset-0 z-[700] bg-black/95 hidden flex items-center justify-center p-6"><div class="bg-[#282828] w-full max-w-sm rounded-3xl p-6"><h3 class="font-black text-xl mb-4">Invite Collaborators</h3><input type="email" id="invite-email" placeholder="friend@example.com" class="w-full bg-[#3e3e3e] p-3 rounded-xl mb-4 text-white outline-none"><button onclick="window.sendInvite()" class="w-full bg-[#1DB954] text-black py-2 rounded-full font-bold">Send Invite</button><button onclick="document.getElementById('invite-modal').classList.add('hidden')" class="w-full mt-3 text-zinc-500 text-sm">Cancel</button></div></div>
+
+    <!-- ONBOARDING MODAL (Moods + Languages) -->
+    <div id="onboarding-modal" class="fixed inset-0 z-[1100] bg-black/95 backdrop-blur-md flex items-center justify-center p-6 hidden"><div class="bg-gradient-to-br from-[#1f1f2e] to-[#121212] rounded-3xl max-w-lg w-full border border-[#1DB954]/40 shadow-2xl p-6"><div class="text-center mb-4"><div class="w-16 h-16 bg-[#1DB954]/20 rounded-full flex items-center justify-center mx-auto mb-3"><svg width="32" height="32" fill="#1DB954" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg></div><h2 class="text-2xl font-black">Welcome to Spotifree!</h2><p class="text-zinc-400 text-sm mt-2">Select your vibe moods</p></div><div id="onboarding-moods" class="flex flex-wrap gap-2 justify-center mb-5"></div><div class="text-center mb-2"><p class="text-zinc-400 text-sm">Choose preferred languages</p></div><div id="onboarding-languages" class="flex flex-wrap gap-2 justify-center mb-6"></div><div class="flex gap-3"><button id="skip-onboarding" class="flex-1 py-3 font-bold text-zinc-500">Skip for now</button><button id="submit-onboarding" class="flex-1 bg-[#1DB954] text-black font-bold py-3 rounded-full shadow-lg">Continue</button></div></div></div>
+
+    <div id="ad-support-modal" class="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-md flex items-center justify-center p-6 hidden"><div class="bg-gradient-to-br from-[#1f1f2e] to-[#121212] rounded-3xl max-w-md w-full border border-[#1DB954]/40 shadow-2xl p-6 text-center"><div class="w-16 h-16 bg-[#1DB954]/20 rounded-full flex items-center justify-center mx-auto mb-4"><svg width="40" height="40" fill="#1DB954" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg></div><h2 class="text-2xl font-black text-white">Keep Spotifree Alive</h2><p class="text-zinc-300 text-sm mt-3 leading-relaxed">Support the dev — click the ad below.<br><span class="text-[#1DB954] font-extrabold">Open & wait 20 sec then close.</span></p><div class="my-6"><a id="support-ad-link" href="#" target="_blank" class="block w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-extrabold py-4 rounded-2xl transition-all">❤️ SUPPORT (Open Ad) ❤️</a></div></div></div>
+
+    <!-- External JavaScript (all logic + protection) -->
+    <script type="module" src="index.js"></script>
+</body>
+</html>
